@@ -1,0 +1,70 @@
+.env
+.dockerenv
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+**/.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented libs
+lib
+coverage
+.nyc_output
+
+# Optional npm cache directory (https://npmjs.org/doc/faq.html#should-i-check-my-node_modules-into-git)
+node_modules
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# nuxt build output
+.output
+.nuxt
+dist
+
+# nuxt dev/build outputs
+.cache
+.output
+.nuxt
+
+# nuxt generate
+dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
