@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help start up wait check logs down restart clean rotate change-ip down-v
+.PHONY: help start up wait check logs down detach restart clean rotate change-ip down-v
 
 help:
 	@echo "WARP Proxy — Cloudflare WARP HTTP proxy"
@@ -10,15 +10,15 @@ help:
 	@echo "  make up        # Start container"
 	@echo "  make check     # Verify WARP egress IP"
 	@echo "  make logs      # Tail logs"
-	@echo "  make down      # Stop container"
+	@echo "  make down      # Copot device dari akun license + stop container"
 	@echo "  make restart   # Restart everything"
 	@echo "  make clean     # Full cleanup (stop + remove volumes/images)"
 	@echo "  make rotate    # Rotate WARP tunnel keys (warp-cli tunnel rotate-keys)"
-	@echo "  make change-ip # Hapus state WARP + up ulang → egress IP baru"
+	@echo "  make change-ip # Copot device + hapus state WARP + up ulang → egress IP baru"
 
 start: up wait check
 
-change-ip: down-v up wait check
+change-ip: detach down-v up wait check
 
 up:
 	docker compose up -d
@@ -43,15 +43,24 @@ check:
 logs:
 	docker compose logs -f --tail 50
 
-down:
+down: detach
 	docker compose down
 
 down-v:
 	docker compose down -v
 
+# Copot device dari akun license → slot nggak numpuk tiap down/restart.
+detach:
+	@echo "Mencopot device WARP dari akun license..."
+	@if docker exec warp-proxy warp-cli --accept-tos registration delete >/dev/null 2>&1; then \
+		echo "✓ Device dicopot."; \
+	else \
+		echo "✗ Container warp-proxy gak jalan / gagal copot — lanjut."; \
+	fi
+
 restart: down up
 
-clean:
+clean: detach
 	docker compose down -v --rmi all --remove-orphans
 
 rotate:

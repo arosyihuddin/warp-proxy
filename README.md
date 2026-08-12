@@ -11,9 +11,10 @@ WARP pakai egress IP Cloudflare **per-user & bersih** → lolos rate limit.
 ```
 warp-proxy/
 ├── docker-compose.yml   # 1x container WARP → port 40001 di host (http proxy)
+├── entrypoint.sh        # patched entrypoint (image panggil set-license yang gak ada)
 ├── .env.example         # LICENSE (kosong=free) + host/port proxy
 ├── Makefile             # shortcut perintah (up, check, logs, down, ...)
-└── check.sh             # verifikasi egress IP (harus warp=on)
+└── check.sh             # verifikasi egress IP + account type (harus warp=on)
 ```
 
 ## Bikin & run
@@ -37,11 +38,11 @@ Proxy tersedia di `http://127.0.0.1:40001`.
 | `make up` | Start container |
 | `make check` | Verifikasi egress IP WARP |
 | `make logs` | Tail log container |
-| `make down` | Stop container |
+| `make down` | Copot device dari akun license + stop container |
 | `make restart` | Restart ulang |
 | `make clean` | Cleanup total (stop + hapus volumes/images) |
 | `make rotate` | Rotasi WARP tunnel keys |
-| `make change-ip` | Hapus state WARP + up ulang → egress IP baru |
+| `make change-ip` | Copot device + hapus state + up ulang → egress IP baru |
 
 Tanpa Makefile, setara dengan `docker compose up -d` lalu `./check.sh`.
 
