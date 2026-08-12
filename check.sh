@@ -26,11 +26,12 @@ for i in $(seq 1 "$COUNT"); do
   curl -sx "$url" https://www.cloudflare.com/cdn-cgi/trace \
     | grep -E '^(warp|colo|ip|loc|asn|ts)=' \
     | sed 's/^/   /' || echo "   ✗ proxy gagal / nggak nyambung"
-  # account type (Free / Premium) via warp-cli inside container
+  # account type (Free / Premium) + license via warp-cli inside container
   if docker ps --format '{{.Names}}' | grep -q '^warp-proxy$'; then
-    echo "   $(docker exec warp-proxy warp-cli --accept-tos registration show 2>/dev/null \
-      | grep -E 'Account type' \
-      | sed 's/Account type:/account type:/')"
+    docker exec warp-proxy warp-cli --accept-tos registration show 2>/dev/null \
+      | grep -E 'Account type|License' \
+      | sed -e 's/Account type:/account type:/' -e 's/License:/license:/' \
+      | sed 's/^/   /'
   else
     echo "   account type: ✗ container warp-proxy nggak jalan"
   fi

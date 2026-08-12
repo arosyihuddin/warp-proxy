@@ -7,5 +7,7 @@ services:
     container_name: warp-proxy
     environment:
       LICENSE: "${WARP_LICENSE:-}"
+    volumes:
+      - ./entrypoint.sh:/entrypoint.sh
     ports:
       - "${WARP_PROXY_HOST:-127.0.0.1}:${WARP_PORT_START:-40001}:40000"
