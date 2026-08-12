@@ -70,7 +70,7 @@ nama-program
 
 | Var | Default | Fungsi |
 |---|---|---|
-| `WARP_LICENSE_1` | kosong | Isi license WARP+ buat upgrade (prioritas) |
+| `WARP_LICENSE` | kosong | Isi license WARP+ buat upgrade (prioritas) |
 | `WARP_PROXY_HOST` | `127.0.0.1` | Host Docker tempat proxy bind |
 | `WARP_PORT_START` | `40001` | Port host proxy |
 | `WARP_INSTANCE_COUNT` | `1` | Jumlah container (belum dipakai compose — satu container sekarang) |

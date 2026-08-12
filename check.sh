@@ -21,10 +21,18 @@ echo ""
 for i in $(seq 1 "$COUNT"); do
   port=$((PORT_START + i - 1))
   url="http://${HOST}:${port}"
-  echo "── warp-${i} (${url}) ──"
+  echo "── warp (${url}) ──"
   # curl via proxy → trace cloudflare
   curl -sx "$url" https://www.cloudflare.com/cdn-cgi/trace \
     | grep -E '^(warp|colo|ip|loc|asn|ts)=' \
     | sed 's/^/   /' || echo "   ✗ proxy gagal / nggak nyambung"
+  # account type (Free / Premium) via warp-cli inside container
+  if docker ps --format '{{.Names}}' | grep -q '^warp-proxy$'; then
+    echo "   $(docker exec warp-proxy warp-cli --accept-tos registration show 2>/dev/null \
+      | grep -E 'Account type' \
+      | sed 's/Account type:/account type:/')"
+  else
+    echo "   account type: ✗ container warp-proxy nggak jalan"
+  fi
   echo ""
 done
