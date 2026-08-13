@@ -1,13 +1,65 @@
 name: warp-proxy
 
+x-warp-base: &warp-base
+  image: zenexas/warp-cli:latest
+  restart: unless-stopped
+  environment:
+    LICENSE: "${WARP_LICENSE:-}"
+
 services:
-  warp:
-    image: zenexas/warp-cli:latest
-    restart: unless-stopped
-    container_name: warp-proxy
-    environment:
-      LICENSE: "${WARP_LICENSE:-}"
+  warp-1:
+    <<: *warp-base
+    container_name: warp-proxy-1
     volumes:
-      - ./entrypoint.sh:/entrypoint.sh
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-1:/var/lib/cloudflare-warp
     ports:
       - "${WARP_PROXY_HOST:-127.0.0.1}:${WARP_PORT_START:-40001}:40000"
+  warp-2:
+    <<: *warp-base
+    container_name: warp-proxy-2
+    volumes:
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-2:/var/lib/cloudflare-warp
+    ports:
+      - "${WARP_PROXY_HOST:-127.0.0.1}:40002:40000"
+  warp-3:
+    <<: *warp-base
+    container_name: warp-proxy-3
+    volumes:
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-3:/var/lib/cloudflare-warp
+    ports:
+      - "${WARP_PROXY_HOST:-127.0.0.1}:40003:40000"
+  warp-4:
+    <<: *warp-base
+    container_name: warp-proxy-4
+    volumes:
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-4:/var/lib/cloudflare-warp
+    ports:
+      - "${WARP_PROXY_HOST:-127.0.0.1}:40004:40000"
+  warp-5:
+    <<: *warp-base
+    container_name: warp-proxy-5
+    volumes:
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-5:/var/lib/cloudflare-warp
+    ports:
+      - "${WARP_PROXY_HOST:-127.0.0.1}:40005:40000"
+  warp-6:
+    <<: *warp-base
+    container_name: warp-proxy-6
+    volumes:
+      - ./scripts/entrypoint.sh:/entrypoint.sh
+      - warp-reg-6:/var/lib/cloudflare-warp
+    ports:
+      - "${WARP_PROXY_HOST:-127.0.0.1}:40006:40000"
+
+volumes:
+  warp-reg-1:
+  warp-reg-2:
+  warp-reg-3:
+  warp-reg-4:
+  warp-reg-5:
+  warp-reg-6:

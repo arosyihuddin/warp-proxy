@@ -1,68 +1,86 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help start up wait check logs down detach restart clean rotate change-ip down-v
+SCRIPTS = scripts
+
+.PHONY: help start start-i check check-i down down-i rotate rotate-i change-ip change-ip-i test logs restart restart-i clean
+
+# Catch-all biar `make start 3` / `make check 3` nggak error "No rule to make target '3'".
+# Argumen di MAKECMDGOALS diambil lewat $(word 2,$(MAKECMDGOALS)) di tiap target.
+%:
+	@true
 
 help:
 	@echo "WARP Proxy — Cloudflare WARP HTTP proxy"
 	@echo ""
-	@echo "Targets:"
-	@echo "  make start     # default: up + check"
-	@echo "  make up        # Start container"
-	@echo "  make check     # Verify WARP egress IP"
-	@echo "  make logs      # Tail logs"
-	@echo "  make down      # Copot device dari akun license + stop container"
-	@echo "  make restart   # Restart everything"
-	@echo "  make clean     # Full cleanup (stop + remove volumes/images)"
-	@echo "  make rotate    # Rotate WARP tunnel keys (warp-cli tunnel rotate-keys)"
-	@echo "  make change-ip # Copot device + hapus state WARP + up ulang → egress IP baru"
+	@echo "Semua command punya 3 mode: tanpa angka = semua, N = 1..N, -i N = instance ke-N"
+	@echo ""
+	@echo "  make start [N]     # start; tanpa angka = satu-satu (IP beda-beda), N = N langsung"
+	@echo "  make start-i N     # start instance ke-N saja"
+	@echo "  make check [N]     # verify egress IP (semua / 1..N)"
+	@echo "  make check-i N     # verify egress IP instance ke-N saja"
+	@echo "  make down [N]      # copot device + stop (semua / 1..N)"
+	@echo "  make down-i N      # copot device + stop instance ke-N saja"
+	@echo "  make rotate [N]    # rotate WARP tunnel keys (semua / 1..N)"
+	@echo "  make rotate-i N    # rotate keys instance ke-N saja"
+	@echo "  make change-ip [N] # rotate egress IP (semua / 1..N)"
+	@echo "  make change-ip-i N # rotate egress IP instance ke-N saja"
+	@echo "  make test [N]      # test tembak OpenCode API (semua / 1..N)"
+	@echo "  make test-i N      # test tembak OpenCode API instance ke-N saja"
+	@echo "  make logs          # tail logs semua container"
+	@echo "  make restart [N]   # down lalu start (semua / 1..N)"
+	@echo "  make restart-i N   # restart instance ke-N saja"
+	@echo "  make clean         # full cleanup (semua volume + images)"
 
-start: up wait check
+# `make start 3` → start 3 instance langsung. `make start` → satu-satu (1..COUNT, IP beda).
+start:
+	./$(SCRIPTS)/start.sh $(word 2,$(MAKECMDGOALS))
 
-change-ip: detach down-v up wait check
-
-up:
-	docker compose up -d
-
-wait:
-	@echo "Menunggu proxy WARP siap..."
-	@if [ -f .env ]; then set -a; . ./.env; set +a; fi; \
-	HOST="$${WARP_PROXY_HOST:-127.0.0.1}"; PORT="$${WARP_PORT_START:-40001}"; \
-	for i in $$(seq 1 30); do \
-		if curl -sx "http://$${HOST}:$${PORT}" https://www.cloudflare.com/cdn-cgi/trace 2>/dev/null | grep -q '^warp=on'; then \
-			echo "Proxy siap."; \
-			exit 0; \
-		fi; \
-		sleep 1; \
-	done; \
-	echo "✗ Proxy tidak siap dalam 30s."; \
-	exit 1
+start-i:
+	./$(SCRIPTS)/start.sh -i $(word 2,$(MAKECMDGOALS))
 
 check:
-	./check.sh
+	./$(SCRIPTS)/check.sh $(word 2,$(MAKECMDGOALS))
+
+check-i:
+	./$(SCRIPTS)/check.sh -i $(word 2,$(MAKECMDGOALS))
+
+down:
+	./$(SCRIPTS)/down.sh $(word 2,$(MAKECMDGOALS))
+
+down-i:
+	./$(SCRIPTS)/down.sh -i $(word 2,$(MAKECMDGOALS))
+
+rotate:
+	./$(SCRIPTS)/rotate.sh $(word 2,$(MAKECMDGOALS))
+
+rotate-i:
+	./$(SCRIPTS)/rotate.sh -i $(word 2,$(MAKECMDGOALS))
+
+change-ip:
+	./$(SCRIPTS)/change-ip.sh $(word 2,$(MAKECMDGOALS))
+
+change-ip-i:
+	./$(SCRIPTS)/change-ip.sh -i $(word 2,$(MAKECMDGOALS))
+
+# Test tembak ke OpenCode API lewat proxy WARP.
+test:
+	./$(SCRIPTS)/test-opencode.sh $(word 2,$(MAKECMDGOALS))
+
+test-i:
+	./$(SCRIPTS)/test-opencode.sh -i $(word 2,$(MAKECMDGOALS))
 
 logs:
 	docker compose logs -f --tail 50
 
-down: detach
-	docker compose down
+# `make restart 3` → down 3 lalu start 3. `make restart-i 3` → restart instance 3 aja.
+# Tanpa argumen → down semua + start satu-satu.
+restart: down
+	./$(SCRIPTS)/start.sh $(word 2,$(MAKECMDGOALS))
 
-down-v:
-	docker compose down -v
+restart-i: down-i
+	./$(SCRIPTS)/start.sh -i $(word 2,$(MAKECMDGOALS))
 
-# Copot device dari akun license → slot nggak numpuk tiap down/restart.
-detach:
-	@echo "Mencopot device WARP dari akun license..."
-	@if docker exec warp-proxy warp-cli --accept-tos registration delete >/dev/null 2>&1; then \
-		echo "✓ Device dicopot."; \
-	else \
-		echo "✗ Container warp-proxy gak jalan / gagal copot — lanjut."; \
-	fi
-
-restart: down up
-
-clean: detach
+# Full cleanup — selalu hapus SEMUA (volume + images). Nggak bisa per-instance.
+clean:
+	./$(SCRIPTS)/down.sh >/dev/null 2>&1 || true
 	docker compose down -v --rmi all --remove-orphans
-
-rotate:
-	docker exec -it warp-proxy warp-cli tunnel rotate-keys || echo "Rotate gagal. Pastikan container warp-proxy jalan."
-	echo "WARP tunnel keys rotated (docker exec warp-proxy warp-cli tunnel rotate-keys)"
