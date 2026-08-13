@@ -20,7 +20,8 @@ warp-proxy/
     ├── down.sh              # copot device + stop (semua / batch / per-instance)
     ├── rotate.sh            # rotate WARP tunnel keys
     ├── change-ip.sh         # rotate egress IP (hapus volume reg → akun baru)
-    └── test-opencode.sh     # test tembak OpenCode API lewat proxy WARP
+    ├── test-opencode.sh     # test tembak OpenCode API lewat proxy WARP
+    └── status.sh            # status container jalan/stop + IP egress
 ```
 
 ## Bikin & run
@@ -65,6 +66,8 @@ tiap instance cenderung beda-beda). `make start N` = start N instance langsung.
 | `make change-ip-i N` | Rotate egress IP instance ke-N |
 | `make test [N]` | Test tembak OpenCode API lewat proxy WARP (semua / 1..N) |
 | `make test-i N` | Test tembak OpenCode API instance ke-N |
+| `make status [N]` | Status container jalan/stop + IP egress (semua / 1..N) |
+| `make status-i N` | Status instance ke-N |
 | `make logs` | Tail log container |
 | `make restart [N]` | Down lalu start (semua / 1..N / `restart-i N`) |
 | `make clean` | Cleanup total (stop + hapus volumes/images) |

@@ -2,7 +2,7 @@
 
 SCRIPTS = scripts
 
-.PHONY: help start start-i check check-i down down-i rotate rotate-i change-ip change-ip-i test logs restart restart-i clean
+.PHONY: help start start-i check check-i down down-i rotate rotate-i change-ip change-ip-i test status status-i logs restart restart-i clean
 
 # Catch-all biar `make start 3` / `make check 3` nggak error "No rule to make target '3'".
 # Argumen di MAKECMDGOALS diambil lewat $(word 2,$(MAKECMDGOALS)) di tiap target.
@@ -26,6 +26,8 @@ help:
 	@echo "  make change-ip-i N # rotate egress IP instance ke-N saja"
 	@echo "  make test [N]      # test tembak OpenCode API (semua / 1..N)"
 	@echo "  make test-i N      # test tembak OpenCode API instance ke-N saja"
+	@echo "  make status [N]    # status container jalan/stop + IP egress (semua / 1..N)"
+	@echo "  make status-i N    # status instance ke-N saja"
 	@echo "  make logs          # tail logs semua container"
 	@echo "  make restart [N]   # down lalu start (semua / 1..N)"
 	@echo "  make restart-i N   # restart instance ke-N saja"
@@ -68,6 +70,12 @@ test:
 
 test-i:
 	./$(SCRIPTS)/test-opencode.sh -i $(word 2,$(MAKECMDGOALS))
+
+status:
+	./$(SCRIPTS)/status.sh $(word 2,$(MAKECMDGOALS))
+
+status-i:
+	./$(SCRIPTS)/status.sh -i $(word 2,$(MAKECMDGOALS))
 
 logs:
 	docker compose logs -f --tail 50
